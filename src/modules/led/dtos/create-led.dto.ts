@@ -1,7 +1,6 @@
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   IsInt,
-  IsJSON,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -9,7 +8,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-class ColorDto {
+export class ColorDto {
   @IsInt()
   r: number;
 

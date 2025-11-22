@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RoleService } from './role.service';
-import { IsNotEmpty } from 'class-validator';
 import { CreateRoleDto } from './dtos/create-role.dto';
 
 @Controller('roles')

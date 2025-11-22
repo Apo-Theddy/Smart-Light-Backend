@@ -16,7 +16,7 @@ export class DeviceController {
     return this.deviceService.create(body);
   }
 
-  @Get('user/:userId')
+  @Get('users/:userId')
   async findUserDevices(@Param('userId') userId: number) {
     return this.deviceService.findAllUserDevices(userId);
   }

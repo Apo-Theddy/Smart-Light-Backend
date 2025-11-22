@@ -10,6 +10,7 @@ import { LedModule } from './modules/led/led.module';
 import { RoleModule } from './modules/role/role.module';
 import { UserModule } from './modules/user/user.module';
 import { MQTTClientModule } from './modules/mqtt-client/mqtt-client.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -20,6 +21,9 @@ import { MQTTClientModule } from './modules/mqtt-client/mqtt-client.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         DatabaseConfig.setup(configService),
+    }),
+    CacheModule.register({
+      isGlobal: true,
     }),
     AccountModule,
     DeviceModule,
@@ -33,4 +37,4 @@ import { MQTTClientModule } from './modules/mqtt-client/mqtt-client.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

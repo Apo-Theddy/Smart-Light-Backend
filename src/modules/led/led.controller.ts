@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put } from '@nestjs/common';
 import { LedService } from './led.service';
 import { CreateLedDto } from './dtos/create-led.dto';
 import { UpdateLedStateDto } from './dtos/update-led-state.dto';
@@ -12,11 +12,12 @@ export class LedController {
     return this.ledService.create(body);
   }
 
-  @Patch(':id/state')
+  @Put(':id/state/:deviceId')
   async updateLedState(
     @Param('id') id: number,
+    @Param('deviceId') deviceId: number,
     @Body() body: UpdateLedStateDto,
   ) {
-    return this.ledService.updateLedState(id, body.isOn);
+    return this.ledService.updateLedState(id, body, deviceId);
   }
 }

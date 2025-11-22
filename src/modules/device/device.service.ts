@@ -3,11 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull } from 'typeorm';
 import { Device } from './device.entity';
 import { CreateDeviceDto } from './dtos/create-device.dto';
 import { User } from '../user/user.entity';
-import { Led } from '../led/led.entity';
 
 @Injectable()
 export class DeviceService {

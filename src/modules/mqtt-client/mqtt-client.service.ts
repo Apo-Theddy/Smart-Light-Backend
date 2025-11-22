@@ -3,24 +3,25 @@ import {
   Transport,
   ClientProxy,
 } from '@nestjs/microservices';
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
-export class MqttClientService {
+export class MqttClientService implements OnModuleInit {
   private client: ClientProxy;
 
-  constructor() {
+  constructor() {}
+
+  async onModuleInit() {
     this.client = ClientProxyFactory.create({
       transport: Transport.MQTT,
       options: {
         url: process.env.MQTT_BROKER_URL ?? 'mqtt://localhost:1883',
       },
     });
-
-    this.client.connect();
+    await this.client.connect();
   }
 
-  async publish(topic: string, data: any) {
-    return this.client.emit(topic, data);
+  publish(topic: string, data: any) {
+    this.client.emit(topic, data);
   }
 }

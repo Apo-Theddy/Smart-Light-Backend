@@ -4,9 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { Account } from './account.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../user/user.entity';
 import { CreateAccountDto } from './dtos/create-account.dto';
 import * as bcryptjs from 'bcryptjs';
