@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LedService } from './led.service';
 import { LedController } from './led.controller';
 import { MQTTClientModule } from '../mqtt-client/mqtt-client.module';
+import { EventModule } from '../event/event.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Led]), MQTTClientModule],
+  imports: [TypeOrmModule.forFeature([Led]), MQTTClientModule, EventModule],
   controllers: [LedController],
   providers: [LedService],
   exports: [LedService],

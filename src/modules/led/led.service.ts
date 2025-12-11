@@ -6,12 +6,14 @@ import { Device } from '../device/device.entity';
 import { UpdateLedStateDto } from './dtos/update-led-state.dto';
 import { MqttClientService } from '../mqtt-client/mqtt-client.service';
 import { Event } from '../event/event.entity';
+import { EventService } from '../event/event.service';
 
 @Injectable()
 export class LedService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly mqttService: MqttClientService,
+    private readonly eventService: EventService,
   ) { }
 
   async findAllByDeviceId(deviceId: number): Promise<Led[]> {
@@ -80,7 +82,17 @@ export class LedService {
         pin: led.pin,
       });
       console.log(`Published LED update to MQTT for LED ID ${led.id}`);
-
+      await this.eventService.createEvent(
+        'LED Update Published',
+        deviceId,
+        `JSON: ${JSON.stringify({
+          id: led.id,
+          isOn: led.isOn,
+          color: led.color,
+          brightness: led.brightness,
+          pin: led.pin,
+        })}`,
+      );
       return await manager.save(led);
     });
 

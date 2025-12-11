@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDTO } from './create-event.dto';
-import { HttpResponse } from '@google/genai';
 
 @Controller('events')
 export class EventController {

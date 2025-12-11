@@ -49,7 +49,7 @@ export class EventService {
 
     this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash', // o gemini-2.0-flash-exp si ya lo tienes',
+      model: 'gemini-2.5-flash', // o gemini-2.0-flash-exp si ya lo tienes',
       generationConfig: {
         temperature: 0.3,
         topP: 0.95,
