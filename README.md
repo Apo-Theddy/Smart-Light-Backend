@@ -1,98 +1,79 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Smart Light Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+REST API and MQTT bridge for **Smart Light**, an end-to-end IoT lighting system made of three parts:
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+| Part | Repository | Stack |
+|---|---|---|
+| Mobile app | [Smart-Light-App](https://github.com/Apo-Theddy/Smart-Light-App) | Flutter |
+| **Backend (this repo)** | Smart-Light-Backend | NestJS, PostgreSQL, MQTT |
+| Device firmware | [Smart-Light-Firmware](https://github.com/Apo-Theddy/Smart-Light-Firmware) | ESP32-S3, C++ |
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ yarn install
+```
+Flutter app ──HTTP──► NestJS API ──MQTT (Mosquitto)──► ESP32 devices
+                         │   ▲                              │
+                         │   └──── device/status ◄──────────┘
+                         ▼
+                 PostgreSQL · Redis cache · Gemini analytics
 ```
 
-## Compile and run the project
+## Features
+
+- **Accounts and roles:** registration and login with bcrypt-hashed passwords, plus role management.
+- **Devices and LEDs:** register devices by MAC address and manage the LEDs on each one (color, brightness, on/off, pin).
+- **Real-time device control:** every LED change runs inside a database transaction and is published to the `leds/update` MQTT topic, which the firmware applies immediately.
+- **Online status:** the API subscribes to `device/status` and keeps each device's online/offline state in sync.
+- **Event log:** every state change is recorded as an event per device.
+- **AI analytics:** `POST /api/events/analytics/devices/all` summarizes device activity and flags anomalies with Google Gemini. Large event sets are split into chunks, analyzed in parallel batches and merged, and results are cached for 24 hours under a hashed key.
+- **Validation:** a global `ValidationPipe` with whitelisting rejects unknown fields on every request.
+
+## Tech stack
+
+NestJS 11 · TypeScript · TypeORM · PostgreSQL 15 · MQTT (`@nestjs/microservices` + Eclipse Mosquitto 2) · Redis · `@nestjs/cache-manager` · Google Gemini · Docker Compose
+
+## API overview
+
+All routes are prefixed with `/api`.
+
+| Area | Endpoints |
+|---|---|
+| Auth | `POST /auth/register`, `POST /auth/login` |
+| Roles | `GET /roles`, `GET /roles/:name`, `POST /roles` |
+| Devices | `POST /devices`, `GET /devices/:mac`, `GET /devices/users/:userId`, `GET /devices/leds/:deviceId` |
+| LEDs | `POST /leds`, `PUT /leds/:id/state/:deviceId` |
+| Events | `POST /events`, `GET /events`, `GET /events/:id`, `GET /events/device/:deviceId`, `POST /events/analytics/devices/all` |
+| MQTT | `POST /mqtt/publish` |
+
+## Getting started
 
 ```bash
-# development
-$ yarn run start
+# 1. Create a .env file
+#   PORT=3000
+#   DB_HOST=localhost  DB_PORT=5432  DB_USER=...  DB_PASSWORD=...  DB_NAME=...
+#   DB_SYNCHRONIZE=true  DB_LOGGING=false
+#   MQTT_BROKER_URL=mqtt://localhost:1883  MQTT_CLIENT_ID=smart-light-backend
+#   GOOGLE_API_KEY=...
+#   PGADMIN_DEFAULT_EMAIL=...  PGADMIN_DEFAULT_PASSWORD=...
 
-# watch mode
-$ yarn run start:dev
+# 2. Start PostgreSQL, pgAdmin, Redis and the Mosquitto broker
+docker compose up -d
 
-# production mode
-$ yarn run start:prod
+# 3. Install and run
+yarn install
+yarn start:dev
 ```
 
-## Run tests
+The included Mosquitto configuration allows anonymous connections, which is intended for local development only.
 
-```bash
-# unit tests
-$ yarn run test
+## Project structure
 
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+src/
+├── main.ts                 # HTTP server + MQTT microservice bootstrap
+├── app.module.ts
+├── core/config/            # TypeORM configuration
+└── modules/
+    ├── account/  role/  user/   # Authentication and authorization
+    ├── device/  led/  group/    # Devices and their LEDs
+    ├── event/                   # Event log and Gemini analytics
+    └── mqtt-client/             # MQTT publishing and device status handling
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
